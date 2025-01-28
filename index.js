@@ -1,19 +1,25 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import Note from "./models/token.js";
 import {faker} from '@faker-js/faker';
-import tokens from "./routes/tokens.js";
+import tokens from "./routes/Tokens.js";
 
 
 const app = express();
 
+
 mongoose.connect('mongodb://127.0.0.1:27017/prg06-tokens');
 
-app.use("/", (req, res, next) =>{
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'origin, Content-Type, Authorization, Accept');
+app.use('/', (req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Staat toegang toe vanaf elke oorsprong
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS'); // Alle methodes toestaan
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Origin, Content-Type, Accept, Authorization' // Zorgt dat clients de juiste headers mogen meesturen
+    );
     next();
 });
+
+
 
 app.use((req, res, next) => {
     // Check Accept header
@@ -21,19 +27,17 @@ app.use((req, res, next) => {
     // console.log(`Client accepteert: ${acceptHeader}`);
     console.log(acceptHeader);
 
-    if (acceptHeader !== 'application/json') {
+    // Check if the client accepts JSON
+    if (acceptHeader !== 'application/json' && req.method !== 'OPTIONS') { //  // Als de aanvraag geen JSON verwacht én het geen OPTIONS-aanvraag is,
         // res.json({message: 'Dit is een JSON-response'});
-        return res.status(406).send('Not Acceptable');
+        return res.status(406).send('This webservice only accepts JSON');
     }
     next();
 });
 
-app.use(express.json());
+app.use(express.json()); //middleware voor JSON-gegevens
 app.use(express.urlencoded({ extended: true }));
 app.use('/tokens', tokens);
-
-
-
 
 
 app.listen(process.env.EXPRESS_PORT, () => {

@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 
 
 
-const noteSchema = new mongoose.Schema({
+const tokenSchema = new mongoose.Schema({
     nameToken: {type: String, required: true},
     tigger: {type: String, required: true},
-    adres: {type: String, required: true},
-    imgURL: {type: String, required: true},
+    adress: {type: String, required: true},
+    favorite: {type: Boolean, default: false}, // Nieuw veld
 }, {
     toJSON: {
         virtuals: true,
@@ -26,4 +26,4 @@ const noteSchema = new mongoose.Schema({
         }
     }
 });
-export default mongoose.model('Note', noteSchema);
+export default mongoose.model('Token', tokenSchema);

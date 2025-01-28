@@ -1,17 +1,27 @@
 import express from "express";
+import Token from "../models/Token.js";
 import {faker} from "@faker-js/faker";
-import Token from "../models/token.js";
+import token from "../models/Token.js";
 
 const router = express.Router();
 
 
 
 // OPTIONS (overview)
-router.options("/", (req, res) => {
-    res.header("Allow", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.send();
+router.options('/', async (req, res) => {
+    res.setHeader('Allow', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', ['GET', 'POST', 'OPTIONS']);
+    res.status(204).send();
 });
+
+// OPTIONS (detail)
+router.options('/:id', async (req, res) => {
+    res.setHeader('Allow', 'GET, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, PATCH, OPTIONS');
+    res.status(204).send();
+});
+
+// -----------------------------------------------------
 
 // GET ALL TOKENS
 router.get('/', async (req, res) => {
@@ -21,9 +31,9 @@ router.get('/', async (req, res) => {
         const skip = (page - 1) * limit; // Skip the first {skip} items
 
         const totalItems = await Token.countDocuments(); // Totale aantal items
-        const tokens = await Token.find({}).skip(skip).limit(limit);
+        const tokens = await Token.find({}).skip(skip).limit(limit); // Find all tokens
 
-        const totalPages = Math.ceil(totalItems / limit);
+        const totalPages = Math.ceil(totalItems / limit); // Totaal aantal pagina's
 
 
         res.status(200).json(
@@ -83,10 +93,10 @@ router.post('/', async (req, res) => {
 
             for (let i = 0; i < amount; i++) {
                 await Token.create({
+                    // nameToken: faker.lorem.lines(1),
                     nameToken: faker.finance.accountName(1),
-                    tigger: faker.finance.currencyCode({min: 1, max: 3}),
-                    adres: faker.finance.ethereumAddress(),
-                    imgURL: faker.image.avatarLegacy()
+                    tigger: faker.finance.currencyName ({min: 1, max: 3}),
+                    adress: faker.finance.ethereumAddress()
                 });
             }
             res.status(201).json({message: `Er staan nu ${amount} tokens in de database. en de database is ${reset ? '' : 'niet'}gereset`});
@@ -95,33 +105,23 @@ router.post('/', async (req, res) => {
             res.status(400).json({ error: error.message });
         }
     }else{
+
         try {
-            const {nameToken, tigger, adres, imgURL} = req.body;
+            const {nameToken, tigger, adress} = req.body;
 
             const token = await Token.create({
                 nameToken: nameToken,
                 tigger: tigger,
-                adres: adres,
-                imgURL: imgURL
+                adress: adress,
             });
             res.status(201).json(token);
+
         } catch (error) {
             res.status(400).json({error: error.message});
         }
     }
-
-
 });
 
-//DELETE ALL
-
-
-// OPTIONS (detail)
-router.options("/:id", (req, res) => {
-    res.header("Allow", "GET, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Methods", "GET, PUT, DELETE, OPTIONS");
-    res.status(204).send();
-});
 
 // GET TOKEN BY ID
 router.get('/:id', async (req, res) => {
@@ -142,10 +142,10 @@ router.get('/:id', async (req, res) => {
 //EDIT TOKEN
 router.put('/:id', async (req, res) => {
     try {
-        const { nameToken, tigger, adres, imgURL } = req.body;
-        const token = await Token.findByIdAndUpdate(
+        const { nameToken, tigger, adress } = req.body;
+        const token = await Token.findByIdAndUpdate( //
             req.params.id,
-            { nameToken, tigger, adres, imgURL },
+            { nameToken, tigger, adress},
             { new: true, runValidators: true } // Return de geüpdatete notitie
         );
 
@@ -153,7 +153,7 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Token not found' });
         }
 
-        res.status(201).json(token); // Status 200 als update succesvol is
+        res.status(201).json(token);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -162,14 +162,41 @@ router.put('/:id', async (req, res) => {
 // DELETE TOKEN (BY ID)
 router.delete('/:id', async (req, res) => {
     try {
-        const token = await Token.findByIdAndDelete(req.params.id); //
+        const token = await Token.findByIdAndDelete(req.params.id); // Zoek en verwijder de notitie
 
         if (!token) {
             return res.status(404).json({ error: 'Token not found' });
         }
 
-        // res.json({ message: 'Token deleted successfully' });
+        // res.status(201).json({ message: 'Token deleted successfully' });
         res.status(204).json({ message: 'Token deleted successfully' }); // Status 200 als update succesvol is
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// FAVOURITE TOKEN (PATCH)
+router.patch('/:id', async (req, res) => {
+    try {
+        const tokenID = req.params.id;
+        const { favorite } = req.body;
+
+        // Controleer of 'favorite' een boolean is
+        if (typeof favorite !== 'boolean') { // Als 'favorite' geen boolean is,
+            return res.status(400).json({ error: "'favorite' field must be a boolean." }); // geef een foutmelding
+        }
+
+        const token = await Token.findByIdAndUpdate(
+            tokenID,
+            { favorite }, // Alleen het veld 'favorite' aanpassen
+            { new: true, runValidators: true }
+        );
+
+        if (!token) {
+            return res.status(404).json({ error: 'Token not found' });
+        }
+
+        res.status(200).json(token); // Teruggeven van het bijgewerkte token
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -178,5 +205,30 @@ router.delete('/:id', async (req, res) => {
 
 
 
+
+// MAKE SEEDER
+router.post('/seed', async (req, res) => {
+    try{
+        const amount = req.body.amount;
+        const reset = req.body.reset;
+
+        if (reset) {
+            await Token.deleteMany({});
+        }
+
+        for (let i = 0; i < amount; i++) {
+            await Token.create({
+                // nameToken: faker.lorem.lines(1),
+                nameToken: faker.finance.accountName(1),
+                tigger: faker.finance.currencyName ({min: 1, max: 3}),
+                adress: faker.finance.ethereumAddress()
+            });
+        }
+        res.status(201).json({message: `Er staan nu ${amount} tokens in de database. en de database is ${reset ? '' : 'niet'}gereset`});
+        // Status 200 als update succesvol is
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 
 export default router
