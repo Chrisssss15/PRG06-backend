@@ -206,29 +206,6 @@ router.patch('/:id', async (req, res) => {
 
 
 
-// MAKE SEEDER
-router.post('/seed', async (req, res) => {
-    try{
-        const amount = req.body.amount;
-        const reset = req.body.reset;
 
-        if (reset) {
-            await Token.deleteMany({});
-        }
-
-        for (let i = 0; i < amount; i++) {
-            await Token.create({
-                // nameToken: faker.lorem.lines(1),
-                nameToken: faker.finance.accountName(1),
-                tigger: faker.finance.currencyName ({min: 1, max: 3}),
-                adress: faker.finance.ethereumAddress()
-            });
-        }
-        res.status(201).json({message: `Er staan nu ${amount} tokens in de database. en de database is ${reset ? '' : 'niet'}gereset`});
-        // Status 200 als update succesvol is
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
 
 export default router
