@@ -153,7 +153,7 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Token not found' });
         }
 
-        res.status(201).json(token);
+        res.status(200).json(token);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
