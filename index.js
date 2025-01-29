@@ -10,7 +10,7 @@ const app = express();
 mongoose.connect('mongodb://127.0.0.1:27017/prg06-tokens');
 
 app.use('/', (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Staat toegang toe vanaf elke oorsprong
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Staat toegang toe vanaf andere origins
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS'); // Alle methodes toestaan
     res.setHeader(
         'Access-Control-Allow-Headers',

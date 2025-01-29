@@ -114,7 +114,7 @@ router.post('/', async (req, res) => {
                 tigger: tigger,
                 adress: adress,
             });
-            res.status(201).json(token);
+            res.status(201).json(token); // Status 201 als update succesvol is
 
         } catch (error) {
             res.status(400).json({error: error.message});
@@ -126,8 +126,8 @@ router.post('/', async (req, res) => {
 // GET TOKEN BY ID
 router.get('/:id', async (req, res) => {
     try {
-        const tokenID = req.params.id;
-        const token = await Token.findById(tokenID);
+        const tokenID = req.params.id; // Haal het ID uit de URL
+        const token = await Token.findById(tokenID); // Zoek de notitie op basis van het ID
 
         if (!token) {
             return res.status(404).json({ error: 'Token not found' });
