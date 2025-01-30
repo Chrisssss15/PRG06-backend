@@ -162,13 +162,12 @@ router.put('/:id', async (req, res) => {
 // DELETE TOKEN (BY ID)
 router.delete('/:id', async (req, res) => {
     try {
-        const token = await Token.findByIdAndDelete(req.params.id); // Zoek en verwijder de notitie
+        const token = await Token.findByIdAndDelete(req.params.id); // Zoek en verwijder de token
 
         if (!token) {
             return res.status(404).json({ error: 'Token not found' });
         }
 
-        // res.status(201).json({ message: 'Token deleted successfully' });
         res.status(204).json({ message: 'Token deleted successfully' }); // Status 200 als update succesvol is
     } catch (error) {
         res.status(400).json({ error: error.message });
